@@ -32,6 +32,9 @@ type WadEntry = { dir: string; plan: WadPlan; source: 'bundled' | 'own' }
 let opts: Options = { wadDir: '', alwaysRun: true, maxCells: undefined, maxFps: DEFAULT_MAX_FPS }
 let game: Game | undefined
 let tickTimer: Timer | undefined
+/** When the tick last ran: a timer that stops firing (a /clear ends the session's timers, not this module) is dead. */
+let lastTickAt = 0
+const TICK_STALE_MS = 1000
 let isTicking = false
 let holds: Holds = noHolds
 let view: ViewSize | undefined
@@ -227,12 +230,22 @@ async function isPaneShown($: Dollar): Promise<boolean> {
 function startTicks($: Dollar): void {
   if (tickTimer !== undefined) return
   tickCount = 0
+  lastTickAt = performance.now()
   tickTimer = $.clock.every(TICK_MS, () => void onTick($))
 }
 
-/** Idempotent: the tick runs while a game exists and the pane is shown. */
+/**
+ * Idempotent: the tick runs while a game exists and the pane is shown. A hot
+ * reload drops the timer with the module state; a /clear keeps the module but
+ * ends the session's timers, so a timer that went quiet is started again.
+ */
 async function ensureTimers($: Dollar): Promise<void> {
-  if (game === undefined || tickTimer !== undefined) return
+  if (game === undefined) return
+  if (tickTimer !== undefined) {
+    if (performance.now() - lastTickAt < TICK_STALE_MS) return
+    debug($, 'the tick timer went quiet (a /clear ends the session timers); starting it again')
+    tickTimer = undefined
+  }
   if (await isPaneShown($)) startTicks($)
 }
 
@@ -271,6 +284,7 @@ async function blitFrame($: Dollar, current: Game, size: ViewSize): Promise<void
 }
 
 async function onTick($: Dollar): Promise<void> {
+  lastTickAt = performance.now()
   if (isTicking) return
   isTicking = true
   try {
@@ -430,7 +444,9 @@ export function register(on: On, options: PluginOptions): void {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const status = await read($, statusAtom)
+    const stored = await read($, statusAtom)
+    // a /clear resets the state atoms but keeps this module and its game: the game is what the person sees
+    const status: Status = stored.kind === 'idle' && game !== undefined ? { kind: 'running', wad: game.wadName } : stored
     if (e.surface !== 'terminal') return drawElsewhere($.ui.resolve(e))
     // a hot reload drops the timers and re-runs this hook for the open pane: bring the tick back
     void ensureTimers($)
@@ -467,6 +483,17 @@ export function register(on: On, options: PluginOptions): void {
     return next(e)
   }).catch(($, e, next) => {
     logFailure($, 'ui.close', next.error.message)
+    return next(e)
+  })
+
+  // A /clear ends the session (reason 'clear') with its timers and state atoms,
+  // but keeps this module and its game; the next render of the pane brings the
+  // tick back through ensureTimers, so the timer is let go of here.
+  on('session.end', async ($, e, next) => {
+    stopTicks()
+    return next(e)
+  }).catch(($, e, next) => {
+    logFailure($, 'session.end', next.error.message)
     return next(e)
   })
 }
