@@ -91,7 +91,8 @@ brings it back. `maxCells` caps the view when a big one is too coarse at its slo
 - Claude Code 2.1.287 or later (mods); written and tested against 2.1.296. The mods API may change between
   releases.
 - A terminal with truecolor and the block elements in its font, at least about 110 columns wide for a playable
-  picture. Tested in Windows Terminal (PowerShell and Git Bash).
+  picture. Tested in Windows Terminal (PowerShell and Git Bash) and on macOS, where it runs the same, installed
+  from the marketplace with nothing else on the machine.
 - Nothing else: no Node, no compiler, no network, no process beyond Claude Code's own.
 
 ## Known limitations
