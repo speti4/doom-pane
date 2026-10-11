@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "doom-pane",
+  "owner": {
+    "name": "speti4",
+    "url": "https://github.com/speti4"
+  },
+  "metadata": {
+    "description": "The original DOOM in a Claude Code pane with nothing to install: the engine runs inside the mod, the shareware episode and Freedoom ship with the plugin",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "doom-pane",
+      "source": "./",
+      "description": "The original DOOM in a pane with nothing to install: id's engine (doomgeneric, GPL-2) compiled to JavaScript runs inside the mod, the shareware episode and Freedoom Phase 1 ship with the plugin, the picture is half-block pixels on a Raster. /doom opens it; w a s d move, q e strafe, f fires, u uses, m opens the menu. Your own IWAD plays too, split into 2 MiB parts. Saves live in the plugin store.",
+      "version": "0.1.0",
+      "license": "GPL-2.0",
+      "category": "fun",
+      "keywords": ["claude-code-mod", "game", "doom", "freedoom", "pane", "raster"]
+    }
+  ]
+}

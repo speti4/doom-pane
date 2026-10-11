@@ -1,0 +1,8 @@
+* text=auto
+*.ps1 text eol=crlf
+# shell scripts and patches must stay LF: bash and git apply choke on CRLF
+*.sh text eol=lf
+*.patch text eol=lf
+# the bundled IWAD parts are binary; the engine is generated (tools/build-engine.sh)
+*.bin binary
+hooks/engine/doomgeneric.js -text linguist-generated=true -diff

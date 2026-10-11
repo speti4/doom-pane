@@ -5,8 +5,8 @@
   "author": {
     "name": "speti4"
   },
-  "homepage": "https://github.com/speti4/claude-games/tree/main/doom-pane",
-  "repository": "https://github.com/speti4/claude-games",
+  "homepage": "https://github.com/speti4/doom-pane",
+  "repository": "https://github.com/speti4/doom-pane",
   "license": "GPL-2.0",
   "keywords": ["claude-code-mod", "game", "doom", "freedoom", "pane", "raster"],
   "types": "./types/index.d.ts",
@@ -14,7 +14,7 @@
     "wadDir": {
       "type": "string",
       "title": "WAD folder",
-      "description": "Folder holding one sub-folder per prepared IWAD (manifest.json + part-NNN.bin, written by tools/prepare-wad.mjs). Empty: ~/.claude/doom-wads.",
+      "description": "Folder holding one sub-folder per IWAD of your own, split into 2 MiB parts (README: Your own IWAD). Empty: ~/.claude/doom-wads.",
       "required": false,
       "default": ""
     },

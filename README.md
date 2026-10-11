@@ -35,11 +35,14 @@ across sessions. Each IWAD has its own slots.
 ## Install
 
 ```
-/plugin marketplace add speti4/claude-games
-/plugin install doom-pane@claude-games
+/plugin marketplace add speti4/doom-pane
+/plugin install doom-pane@doom-pane
 ```
 
-Then `/doom`. The plugin is about 35 MB, most of it the game data (4 MB shareware DOOM, 28 MB Freedoom).
+Then `/doom`. The plugin is about 35 MB, most of it the game data (4 MB shareware DOOM, 28 MB Freedoom). The
+`owner/repo` shorthand clones over SSH first; `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` makes it HTTPS. Third-party
+marketplaces do not update by themselves: after a new version, `/plugin marketplace update doom-pane` and
+`/plugin update doom-pane@doom-pane`.
 
 ## Your own IWAD
 
@@ -128,11 +131,12 @@ is the one with nothing to install.
 ## Develop
 
 ```powershell
-claude --debug --plugin-dir .\doom-pane            # trial session, hot reload on save
-claude plugin validate .\doom-pane
-npx -p typescript tsc -p .\doom-pane               # typecheck (the first --plugin-dir load writes the types)
-claude plugin test .\doom-pane                     # every tests/*.test.ts
-node .\doom-pane\tools\check-bundle.mjs            # the bundled parts add up, the engine starts on them (Node)
+claude --debug --plugin-dir .            # trial session, hot reload on save
+claude plugin validate .                 # the marketplace manifest and the plugin
+npx -p typescript tsc -p .               # typecheck (the first --plugin-dir load writes the types)
+claude plugin test .                     # every tests/*.test.ts
+node tools/check-bundle.mjs              # the bundled parts add up, the engine starts on them (Node)
+node tools/check-bundle.mjs wads/freedoom1
 ```
 
 `hooks/engine/doomgeneric.js` is committed; rebuilding needs Docker and Node:
@@ -149,6 +153,8 @@ See `THIRD-PARTY.md` for what is compiled in, where the data comes from and unde
 ## Layout
 
 ```
+.claude-plugin/plugin.json  the manifest and the options; marketplace.json beside it lists this folder as the one plugin
+hooks/hooks.json            the hooks manifest: the one module below
 hooks/register.tsx          the hooks: /doom, the pane, the 35 Hz tick, the frame pacing, the hotkeys, the saves
 hooks/pane.tsx              the pane's tree: Raster, status line, legend of hotkey Buttons
 hooks/cells.ts              pure: a 0x00RRGGBB frame → half-block Raster cells, base64

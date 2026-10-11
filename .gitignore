@@ -1,0 +1,12 @@
+# Type declarations Claude Code writes next to the mod when it loads it with --plugin-dir
+.claude-plugin/types/
+
+# the doomgeneric clone and emcc output live under tools/build; the post-processed engine is committed
+tools/build/
+
+# task files are the author's local notebook, not published
+tasks/
+
+Thumbs.db
+.vscode/
+.DS_Store
