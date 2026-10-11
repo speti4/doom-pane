@@ -21,12 +21,12 @@ const statusAtom = atom({ plugin: 'doom-pane', key: 'status' } as const, { kind:
 
 type Dollar = EngineInterface
 type Ui = Pick<EngineInterface, 'ui'>
-type Options = { wadDir: string; alwaysRun: boolean }
+type Options = { wadDir: string; alwaysRun: boolean; maxCells: number | undefined }
 type WadEntry = { dir: string; manifest: Manifest }
 
 // Module state: the running engine, its timer, the key holds and the view the
 // pane last drew. A hot reload drops it all; the status line then says so.
-let opts: Options = { wadDir: '', alwaysRun: true }
+let opts: Options = { wadDir: '', alwaysRun: true, maxCells: undefined }
 let game: Game | undefined
 let tickTimer: Timer | undefined
 let isTicking = false
@@ -257,7 +257,7 @@ function setFocused(focused: boolean): void {
 }
 
 async function openPane($: Dollar): Promise<{ text: string }> {
-  const opened = await $.ui.open({ id: PANE, title: 'DOOM', focus: true, columns: 120, rows: 50 })
+  const opened = await $.ui.open({ id: PANE, title: 'DOOM', focus: true, columns: 160, rows: 50 })
   if (!opened.isPlaced) {
     return { text: `doom-pane: the pane waits undrawn (${opened.reason}). Widen the terminal or run /doom again.` }
   }
@@ -289,7 +289,12 @@ async function bench($: Dollar): Promise<{ text: string }> {
 }
 
 export function register(on: On, options: PluginOptions): void {
-  opts = { wadDir: typeof options.wadDir === 'string' ? options.wadDir.trim() : '', alwaysRun: options.alwaysRun !== false }
+  const maxCells = Number.parseInt(typeof options.maxCells === 'string' ? options.maxCells : '', 10)
+  opts = {
+    wadDir: typeof options.wadDir === 'string' ? options.wadDir.trim() : '',
+    alwaysRun: options.alwaysRun !== false,
+    maxCells: Number.isFinite(maxCells) && maxCells > 0 ? maxCells : undefined,
+  }
 
   on('session.start', async ($, e, next) => {
     const r = await next(e)
@@ -362,7 +367,7 @@ export function register(on: On, options: PluginOptions): void {
     if (e.surface !== 'terminal') return drawElsewhere($.ui.resolve(e))
     // a hot reload drops the timers and re-runs this hook for the open pane: bring the tick back
     void ensureTimers($)
-    const size = viewSize({ bodyColumns: e.props.bodyColumns, bodyRows: e.props.scroll.bodyRows, legendRows: CHROME_ROWS })
+    const size = viewSize({ bodyColumns: e.props.bodyColumns, bodyRows: e.props.scroll.bodyRows, legendRows: CHROME_ROWS, maxCells: opts.maxCells })
     if (!sameSize(size, view)) {
       view = size
       denies = 0

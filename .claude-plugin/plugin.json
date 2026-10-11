@@ -20,6 +20,13 @@
       "description": "Hold the run key for you (the terminal has no Shift hotkey). Default: on.",
       "required": false,
       "default": true
+    },
+    "maxCells": {
+      "type": "string",
+      "title": "View cell cap",
+      "description": "At most this many Raster cells for the picture (columns x rows); empty: as many as the pane holds, up to 512x256. Lower it if the pane refuses a large tree or the frame rate drops.",
+      "required": false,
+      "default": ""
     }
   }
 }

@@ -15,9 +15,10 @@ prepared IWADs and `/doom <name>` plays one; `/doom help` prints the keys. Savin
 in the plugin store, and the next start mounts it back, so the load menu works across sessions.
 
 A terminal cannot report a key release, so a held key is simulated: the first press keeps the key down for 550 ms
-(past the OS repeat delay), each repeat extends it by 120 ms. The view is 4:3 and adapts to the pane: up to 5400
-cells (for example 84×31, or 120×45 in a wide pane with the cap raised), sampled nearest-neighbour from the
-engine's 320×200 frame. No sound.
+(past the OS repeat delay), each repeat extends it by 120 ms. The view is 4:3 and fills the pane's width (a
+160-column dock gives 160×60 cells, 160×120 pixels), sampled nearest-neighbour from the engine's 320×200 frame, so
+a smaller terminal font and a wider dock (drag its edge) mean a sharper picture. The `maxCells` option caps it. No
+sound.
 
 Written against Claude Code 2.1.296; the mods API may change between releases.
 
@@ -48,6 +49,7 @@ and MD5. The parts go to `~/.claude/doom-wads/<name>/` (the `wadDir` option name
 |---|---|---|
 | `wadDir` | `~/.claude/doom-wads` | the folder holding one sub-folder per prepared IWAD |
 | `alwaysRun` | on | hold DOOM's run key for you |
+| `maxCells` | empty | cap the picture at this many cells (columns × rows); empty: whatever the pane holds, up to 512×256 |
 
 ## Rebuild the engine (developers)
 

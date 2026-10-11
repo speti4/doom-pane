@@ -130,6 +130,18 @@ describe('register', () => {
     await ui.unmount()
   })
 
+  test('a wide pane gets a large Raster, well past 100k characters of cells', async ($, on) => {
+    world(on)
+    await start($)
+    const props = { ...PANE_PROPS, bodyColumns: 240, scroll: { offset: 0, bodyRows: 100 } }
+    const ui = await $.ui.mount({ plugin: 'doom-pane', surface: 'terminal', component: 'Pane', requestId: PANE, props })
+    const rasters = await ui.findAll({ type: 'Raster' })
+    expect(rasters).toHaveLength(1)
+    expect(rasters[0]?.props).toMatchObject({ columns: 240, rows: 90 })
+    expect((rasters[0]?.props as { cells: string }).cells.length).toBe(240 * 90 * 16)
+    await ui.unmount()
+  })
+
   test('a surface without a Raster gets one line', async ($, on) => {
     world(on)
     await start($)

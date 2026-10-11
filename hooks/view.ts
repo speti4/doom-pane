@@ -1,13 +1,14 @@
 // View: how many Raster cells the pane's body gets. A cell is one pixel wide
 // and two tall; DOOM's picture is 4:3, so a view is `columns` x `3/8 columns`
-// rows. Capped by MAX_CELLS (the tree's serialized size) and the Raster's own
-// bounds. Pure.
+// rows. Bounded by the Raster's own limits, and by `maxCells` where the person
+// caps it (the `maxCells` option). Pure.
 
-export const MAX_CELLS = 5400
 export const MIN_COLUMNS = 20
 export const MIN_ROWS = 8
 export const RASTER_MAX_COLUMNS = 512
 export const RASTER_MAX_ROWS = 256
+/** The default cap: the Raster's own bound, so the pane's size decides. */
+export const MAX_CELLS = RASTER_MAX_COLUMNS * RASTER_MAX_ROWS
 
 export type ViewSize = { columns: number; rows: number }
 

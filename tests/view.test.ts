@@ -3,11 +3,14 @@ import { describe, expect, test } from 'claude-code/testing'
 import { MAX_CELLS, MIN_COLUMNS, MIN_ROWS, RASTER_MAX_COLUMNS, sameSize, viewSize } from '../hooks/view'
 
 describe('viewSize', () => {
-  test('a wide, tall pane gets the cell cap at 4:3', () => {
+  test('a wide, tall pane fills its width at 4:3; a cell cap shrinks it', () => {
     const size = viewSize({ bodyColumns: 200, bodyRows: 80, legendRows: 4 })
-    expect(size.columns * size.rows).toBeLessThanOrEqual(MAX_CELLS)
-    expect(size.rows).toBe(Math.floor((size.columns * 3) / 8))
-    expect(size.columns).toBe(84)
+    expect(size).toEqual({ columns: 200, rows: 75 })
+    expect(MAX_CELLS).toBe(512 * 256)
+    const capped = viewSize({ bodyColumns: 200, bodyRows: 80, legendRows: 4, maxCells: 5400 })
+    expect(capped.columns * capped.rows).toBeLessThanOrEqual(5400)
+    expect(capped.rows).toBe(Math.floor((capped.columns * 3) / 8))
+    expect(capped.columns).toBe(84)
   })
 
   test('a narrow pane is bound by its width', () => {
