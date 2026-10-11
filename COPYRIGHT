@@ -15,8 +15,10 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. See the GNU General Public License below for more details.
 
-The bundled game data (wads/freedoom1/) is Freedoom, under its own BSD licence
-in wads/freedoom1/COPYING.txt. The generated engine also carries parts of the
-Emscripten runtime (MIT / University of Illinois NCSA licence); see
-THIRD-PARTY.md.
+The bundled game data is not covered by the GPL: wads/doom1/ is id Software's
+shareware episode of DOOM, unmodified, under its shareware terms (free to copy,
+not to sell or modify; wads/doom1/LICENSE.txt), and wads/freedoom1/ is Freedoom
+under its BSD licence (wads/freedoom1/COPYING.txt). The generated engine also
+carries parts of the Emscripten runtime (MIT / University of Illinois NCSA
+licence); see THIRD-PARTY.md.
 

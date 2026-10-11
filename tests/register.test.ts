@@ -30,7 +30,7 @@ function world(on: On, options: { own?: boolean; bundled?: boolean } = {}) {
   const manifest = tinyManifest()
   const parts = tinyParts()
   if (options.own) {
-    // the person's folder, as bundle-freedoom would write it: manifest and parts
+    // the person's folder, as bundle-wads would write it: manifest and parts
     dirs.set(WAD_ROOT, [dir('tiny')])
     dirs.set(`${WAD_ROOT}/tiny`, [file('manifest.json'), ...manifest.parts.map(part => file(part.file))])
     files.set(`${WAD_ROOT}/tiny/manifest.json`, JSON.stringify(manifest))

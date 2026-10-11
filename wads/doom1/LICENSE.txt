@@ -1,0 +1,17 @@
+DOOM shareware, version 1.9: the first episode, "Knee-Deep in the Dead"
+
+Copyright (c) 1993-1995 id Software, Inc. All rights reserved. DOOM is a
+trademark of id Software LLC, a ZeniMax Media company.
+
+The files in this folder are id Software's shareware release of DOOM, exactly
+as distributed in doom19s.zip on the idgames archive: the part-NNN.bin files
+joined in order are the unmodified DOOM1.WAD (4,196,020 bytes, MD5
+f0cefca49926d00903cf57551d901abe), and README.TXT is the release's own README.
+The WAD is split only because the Claude Code plugin API reads files of at most
+4 MiB; nothing in it is changed.
+
+id Software released this episode as shareware: it may be copied and passed on
+freely and without charge, it may not be sold, and it may not be modified. The
+other two episodes (DOOM, The Ultimate DOOM) and DOOM II are commercial
+products; play them from your own copies (README: "Your own IWAD"). The plugin
+is not affiliated with or endorsed by id Software or ZeniMax.

@@ -4,14 +4,14 @@
 // manifest's size and SHA-256, the header is an IWAD's, the engine comes up and
 // ticks. A developer check (`claude plugin test` has no file system), Node 18+.
 //
-//   node tools/check-bundle.mjs [wads/freedoom1] [tics]
+//   node tools/check-bundle.mjs [wads/doom1] [tics]
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const [dirArg = join(here, '..', 'wads', 'freedoom1'), ticsArg = '350'] = process.argv.slice(2);
+const [dirArg = join(here, '..', 'wads', 'doom1'), ticsArg = '350'] = process.argv.slice(2);
 const tics = Number(ticsArg);
 
 const names = readdirSync(dirArg);

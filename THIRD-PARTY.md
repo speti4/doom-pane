@@ -34,20 +34,31 @@ The generated file carries Emscripten's JavaScript runtime and library code (the
 system, the C library shims). Emscripten is (c) 2010-2026 the Emscripten authors, available under the MIT license
 and the University of Illinois/NCSA Open Source License: https://github.com/emscripten-core/emscripten/blob/main/LICENSE
 
-## Freedoom: the bundled game data
+## The shareware DOOM: the bundled game data, and the default
+
+`wads/doom1/` is id Software's shareware release of DOOM, version 1.9 (`DOOM1.WAD`, 4,196,020 bytes, MD5
+`f0cefca49926d00903cf57551d901abe`, SHA-256 in the manifest): the first episode, "Knee-Deep in the Dead". It is
+unchanged in content and split into 2 MiB parts because the mod reads files through `$.fs.read`, which rejects a
+file over 4 MiB. It was taken from id's own `doom19s.zip` on the idgames archive (MD5
+`244d181457c9be5f28b91b488e67e042`) by `tools/bundle-wads.mjs shareware`, which verifies the archive and the WAD
+before splitting; the release's `README.TXT` is kept beside the parts, and `LICENSE.txt` states the terms as id
+set them for the shareware: free to copy and pass on, not to sell, not to modify. (c) 1993-1995 id Software, Inc.
+The Debian `doom-wad-shareware` package ships the same file on the same terms.
+
+## Freedoom: the free game data
 
 `wads/freedoom1/` is Freedoom Phase 1, version 0.13.0 (`freedoom1.wad`, 28,795,076 bytes, SHA-256
-`7323bcc168c5a45ff10749b339960e98314740a734c30d4b9f3337001f9e703d`), unchanged in content and split into 2 MiB
-parts because the mod reads files through `$.fs.read`, which rejects a file over 4 MiB. It was taken from the
-project's release archive `freedoom-0.13.0.zip` (SHA-256 `3f9b264f3e3ce503b4fb7f6bdcb1f419d93c7b546f4df3e874dd878db9688f59`,
-https://github.com/freedoom/freedoom/releases/tag/v0.13.0) by `tools/bundle-freedoom.mjs`, which verifies the
+`7323bcc168c5a45ff10749b339960e98314740a734c30d4b9f3337001f9e703d`), unchanged in content and split the same way.
+It was taken from the project's release archive `freedoom-0.13.0.zip` (SHA-256
+`3f9b264f3e3ce503b4fb7f6bdcb1f419d93c7b546f4df3e874dd878db9688f59`,
+https://github.com/freedoom/freedoom/releases/tag/v0.13.0) by `tools/bundle-wads.mjs freedoom`, which verifies the
 archive before splitting. Freedoom is (c) 2001-2024 Contributors to the Freedoom project, under the 3-clause BSD
 license kept beside the parts as `wads/freedoom1/COPYING.txt`. https://freedoom.github.io/
 
-## id Software's game data
+## id Software's commercial game data
 
-No IWAD of id Software's is shipped. `doom.wad`, `doom2.wad`, the shareware `doom1.wad` and Final DOOM are the
-player's own copies, split the same way under the `wadDir` folder (README: "Your own IWAD").
+Nothing of the registered games is shipped. `doom.wad`, `doom2.wad` and Final DOOM are the player's own copies,
+split the same way under the `wadDir` folder (README: "Your own IWAD").
 
 ## Trademarks
 

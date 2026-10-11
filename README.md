@@ -2,19 +2,20 @@
 
 The original DOOM in a Claude Code pane, with nothing to install. The engine is id Software's, by way of
 [doomgeneric](https://github.com/ozkl/doomgeneric), compiled to plain JavaScript and run **inside the mod's hooks
-module**: no native binary, no sidecar process, no compiler, no download, no network. The game data is
-[Freedoom Phase 1](https://freedoom.github.io/), shipped with the plugin. Install it, type `/doom`, play. It is the
-same on Windows, macOS and Linux, because nothing of it touches the machine beyond Claude Code's own plugin API.
+module**: no native binary, no sidecar process, no compiler, no download, no network. The game data ships with the
+plugin: id Software's shareware episode of DOOM ("Knee-Deep in the Dead", E1M1 and all), and
+[Freedoom Phase 1](https://freedoom.github.io/) beside it. Install it, type `/doom`, play. It is the same on
+Windows, macOS and Linux, because nothing of it touches the machine beyond Claude Code's own plugin API.
 
 ![The DOOM pane in Claude Code: Freedoom Phase 1 drawn in half-block cells, the status line and the hotkey legend under it](docs/doom-pane.png)
 
 The picture is a `Raster` of half-block cells (one terminal cell holds two pixels, truecolor) repainted with
-`$.ui.blit`; the keys are the pane's hotkeys. Your own IWADs (`doom.wad`, `doom2.wad`, the shareware episode, Final
-DOOM) play too, see "Your own IWAD".
+`$.ui.blit`; the keys are the pane's hotkeys. Your own IWADs (`doom.wad`, `doom2.wad`, Final DOOM) play too, see
+"Your own IWAD".
 
 ## Play
 
-`/doom` opens the pane with the keyboard and starts Freedoom (or the IWAD you played last). `w` `s` move, `a` `d`
+`/doom` opens the pane with the keyboard and starts the shareware DOOM (or the IWAD you played last). `w` `s` move, `a` `d`
 turn, `q` `e` strafe, `f` fires, `u` uses (doors, switches), `m` opens the menu, `r` is Enter, `b` is Backspace, `t`
 toggles the automap, `p` pauses, `y` `n` answer the menu, `1`-`7` pick a weapon. Running is always on (the terminal
 has no Shift hotkey). Esc hands the keys back to the prompt and pauses the game; a click on the pane (or ctrl+x, then
@@ -24,8 +25,8 @@ Tab) resumes it.
 |---|---|
 | `/doom` | opens the pane and the game; again closes the pane, the game keeps its state |
 | `/doom new` | restarts the current IWAD from its title screen |
-| `/doom wads` | lists the IWADs: the bundled Freedoom and your own |
-| `/doom <name>` | plays one of them (`/doom doom2`) |
+| `/doom wads` | lists the IWADs: the bundled shareware DOOM and Freedoom, then your own |
+| `/doom <name>` | plays one of them (`/doom freedoom1`, `/doom doom2`) |
 | `/doom help` | prints the keys |
 
 Saving from DOOM's menu puts the slot in the plugin store, and the next start mounts it back, so the load menu works
@@ -38,7 +39,7 @@ across sessions. Each IWAD has its own slots.
 /plugin install doom-pane@claude-games
 ```
 
-Then `/doom`. The plugin is about 30 MB, most of it the Freedoom data.
+Then `/doom`. The plugin is about 35 MB, most of it the game data (4 MB shareware DOOM, 28 MB Freedoom).
 
 ## Your own IWAD
 
@@ -64,8 +65,8 @@ for ($o = 0; $o -lt $bytes.Length; $o += 2MB) {
 mkdir -p ~/.claude/doom-wads/doom2 && split -b 2m doom2.wad ~/.claude/doom-wads/doom2/part-
 ```
 
-Then `/doom wads` lists it and `/doom doom2` plays it. The shareware `doom1.wad` (4,196,020 bytes, 1.7 KB over the
-limit) is split the same way. The registered games are your own copies; id Software's data is not included.
+Then `/doom wads` lists it and `/doom doom2` plays it. The registered games are your own copies; only the shareware
+episode is included.
 
 ## The picture and its pace
 
@@ -138,7 +139,8 @@ node .\doom-pane\tools\check-bundle.mjs            # the bundled parts add up, t
 ```bash
 tools/build-engine.sh           # clones doomgeneric at the pinned commit, patches, emcc in emscripten/emsdk:6.0.12, post-processes
 tools/build-engine.sh --debug   # -O1 with assertions
-node tools/bundle-freedoom.mjs  # re-fetches the Freedoom release, verifies it, splits it into wads/freedoom1/
+node tools/bundle-wads.mjs shareware   # re-fetches doom19s.zip from the idgames archive, verifies it, splits DOOM1.WAD into wads/doom1/
+node tools/bundle-wads.mjs freedoom    # the same for the Freedoom release into wads/freedoom1/
 ```
 
 See `THIRD-PARTY.md` for what is compiled in, where the data comes from and under which licences.
@@ -154,8 +156,9 @@ hooks/keys.ts               pure: the bindings, DOOM key codes, the hold synthes
 hooks/wad.ts                pure: a WAD folder's plan (with or without a manifest), the parts, the IWAD header
 hooks/engine/driver.ts      one running game over the engine module: create, tick, keys, frame, exit
 hooks/engine/doomgeneric.js the engine (generated, GPL-2) and its hand-written .d.ts
+wads/doom1/                 the shareware DOOM in 2 MiB parts, its manifest, README and licence note
 wads/freedoom1/             Freedoom Phase 1 in 2 MiB parts, its manifest and licence
-tools/                      build-engine.sh, postprocess.mjs, bundle-freedoom.mjs, check-bundle.mjs, dg-platform.c, dg-library.js, patches/
+tools/                      build-engine.sh, postprocess.mjs, bundle-wads.mjs, check-bundle.mjs, dg-platform.c, dg-library.js, patches/
 types/index.d.ts            the $.state contract (status)
 tests/                      claude plugin test: the pure modules, the engine's load and exit, the command and the pane
 ```
@@ -165,12 +168,16 @@ reads of HOME and USERPROFILE. No sound, no network, no processes, no writes.
 
 ## Credits and licence
 
-- [id Software](https://github.com/id-Software/DOOM) for DOOM, released under the GPL in 1997.
+- [id Software](https://github.com/id-Software/DOOM) for DOOM: the engine, released under the GPL in 1997, and the
+  shareware episode, released for free copying in 1993.
 - [doomgeneric](https://github.com/ozkl/doomgeneric) by Ozkan Sezer, the portable DOOM this runs, built on
   [Chocolate Doom](https://www.chocolate-doom.org/).
 - [Freedoom](https://freedoom.github.io/), the free game data, by its contributors.
 - [Emscripten](https://emscripten.org/), whose wasm2js makes a C engine a JavaScript module.
 
-The plugin is GPL-2.0 (`LICENSE`); Freedoom is BSD-3-Clause (`wads/freedoom1/COPYING.txt`); the details are in
-`THIRD-PARTY.md`. DOOM is a trademark of id Software LLC, a ZeniMax Media company. This plugin is not affiliated
-with or endorsed by id Software, ZeniMax, Anthropic or the Freedoom project.
+The plugin is GPL-2.0: `LICENSE` is the licence text, `COPYRIGHT` the copyright lines and what the GPL does not
+cover. The shareware episode is id Software's, unmodified, under its shareware
+terms: free to copy, not to sell or modify (`wads/doom1/LICENSE.txt`, `wads/doom1/README.TXT`). Freedoom is
+BSD-3-Clause (`wads/freedoom1/COPYING.txt`). The details are in `THIRD-PARTY.md`. DOOM is a trademark of id
+Software LLC, a ZeniMax Media company. This plugin is not affiliated with or endorsed by id Software, ZeniMax,
+Anthropic or the Freedoom project.

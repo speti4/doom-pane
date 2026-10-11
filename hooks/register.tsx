@@ -15,8 +15,8 @@ const TICK_MS = 28
 const PANE_CHECK_TICKS = 70
 const DENIES_BEFORE_REDRAW = 3
 const DENIES_BEFORE_STOP = 40
-/** The IWAD the plugin ships, played when nothing else is asked for or remembered. */
-const BUNDLED_WAD = 'freedoom1.wad'
+/** The IWAD played when nothing else is asked for or remembered: id's shareware episode, which ships with the plugin (Freedoom beside it). */
+const BUNDLED_WAD = 'doom1.wad'
 const OWN_WAD_HINT = 'an IWAD of your own goes split into 2 MiB parts under <wadDir>/<name>/ (README: "Your own IWAD")'
 
 const statusAtom = atom({ plugin: 'doom-pane', key: 'status' } as const, { kind: 'idle' } as Status)
@@ -125,6 +125,8 @@ async function listWads($: Dollar): Promise<{ ownRoot: string; wads: WadEntry[] 
   const bundledRoot = bundledWadRoot($)
   const bundled = bundledRoot === undefined ? [] : await listWadsUnder($, bundledRoot, 'bundled')
   const own = await listWadsUnder($, ownRoot, 'own')
+  // the default IWAD first, the rest in the order the folders came
+  bundled.sort((a, b) => Number(b.plan.name === BUNDLED_WAD) - Number(a.plan.name === BUNDLED_WAD))
   return { ownRoot, wads: [...bundled, ...own] }
 }
 

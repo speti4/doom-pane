@@ -7,7 +7,7 @@ const manifestPlan = (): WadPlan => planWad('tiny', ['manifest.json', 'part-000.
 const barePlan = (): WadPlan => planWad('tiny', ['part-000.bin', 'part-001.bin'])
 
 describe('parseManifest', () => {
-  test('accepts what bundle-freedoom writes', () => {
+  test('accepts what bundle-wads writes', () => {
     const manifest = parseManifest(JSON.stringify(tinyManifest()))
     expect(manifest.name).toBe('tiny.wad')
     expect(manifest.parts).toHaveLength(2)
