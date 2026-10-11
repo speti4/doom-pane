@@ -40,6 +40,22 @@ export function viewSize(room: Room): ViewSize {
   return { columns, rows }
 }
 
+/** DOOM's tic rate. */
+export const TICS_PER_SECOND = 35
+/**
+ * How many cells a second the terminal is asked to repaint at most: past this
+ * the console's output blocks and the whole process stalls (seen on Windows
+ * Terminal at 16k cells x 35 fps).
+ */
+export const CELLS_PER_SECOND = 200_000
+
+/** Every how many tics a frame goes to the terminal, for a view of `cells` cells under `maxFps`. */
+export function ticsPerFrame(cells: number, maxFps: number, cellsPerSecond = CELLS_PER_SECOND): number {
+  const byFps = Math.ceil(TICS_PER_SECOND / Math.max(1, Math.min(TICS_PER_SECOND, maxFps)))
+  const byCells = Math.ceil((TICS_PER_SECOND * Math.max(1, cells)) / cellsPerSecond)
+  return Math.max(1, byFps, byCells)
+}
+
 export function sameSize(a: ViewSize | undefined, b: ViewSize | undefined): boolean {
   return a !== undefined && b !== undefined && a.columns === b.columns && a.rows === b.rows
 }

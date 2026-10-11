@@ -1,6 +1,22 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { MAX_CELLS, MIN_COLUMNS, MIN_ROWS, RASTER_MAX_COLUMNS, sameSize, viewSize } from '../hooks/view'
+import { CELLS_PER_SECOND, MAX_CELLS, MIN_COLUMNS, MIN_ROWS, RASTER_MAX_COLUMNS, sameSize, ticsPerFrame, viewSize } from '../hooks/view'
+
+describe('ticsPerFrame', () => {
+  test('a small view is paced by maxFps alone', () => {
+    expect(ticsPerFrame(2600, 20)).toBe(2)
+    expect(ticsPerFrame(2600, 35)).toBe(1)
+    expect(ticsPerFrame(2600, 10)).toBe(4)
+  })
+
+  test('a large view is paced by the cell budget', () => {
+    // 81x205 cells at 35 fps stalled the terminal: the budget holds it to ~12 fps
+    expect(ticsPerFrame(81 * 205, 35)).toBe(3)
+    expect(ticsPerFrame(160 * 60, 20)).toBe(2)
+    expect(ticsPerFrame(512 * 256, 35, CELLS_PER_SECOND)).toBe(23)
+    expect(ticsPerFrame(0, 0)).toBe(35)
+  })
+})
 
 describe('viewSize', () => {
   test('a wide, tall pane fills its width at 4:3; a cell cap shrinks it', () => {

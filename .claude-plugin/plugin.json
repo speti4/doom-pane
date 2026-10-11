@@ -21,6 +21,13 @@
       "required": false,
       "default": true
     },
+    "maxFps": {
+      "type": "string",
+      "title": "Frames per second",
+      "description": "At most this many frames a second to the terminal (1-35); the game itself runs at 35 tics. A large view is paced further so the terminal keeps up. Default: 20.",
+      "required": false,
+      "default": ""
+    },
     "maxCells": {
       "type": "string",
       "title": "View cell cap",

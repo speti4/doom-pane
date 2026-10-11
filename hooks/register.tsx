@@ -7,7 +7,7 @@ import createDoom from './engine/doomgeneric.js'
 import { createGame, type Game } from './engine/driver'
 import { KEYS, lapse, noHolds, press, releaseAll, type Binding, type Holds } from './keys'
 import { CHROME_ROWS, drawElsewhere, drawPane, RASTER_KEY } from './pane'
-import { sameSize, viewSize, type ViewSize } from './view'
+import { sameSize, ticsPerFrame, viewSize, type ViewSize } from './view'
 import { assembleWad, describeWad, fromBase64, parseManifest, type Manifest } from './wad'
 
 const PANE = 'doom'
@@ -21,12 +21,13 @@ const statusAtom = atom({ plugin: 'doom-pane', key: 'status' } as const, { kind:
 
 type Dollar = EngineInterface
 type Ui = Pick<EngineInterface, 'ui'>
-type Options = { wadDir: string; alwaysRun: boolean; maxCells: number | undefined }
+type Options = { wadDir: string; alwaysRun: boolean; maxCells: number | undefined; maxFps: number }
+const DEFAULT_MAX_FPS = 20
 type WadEntry = { dir: string; manifest: Manifest }
 
 // Module state: the running engine, its timer, the key holds and the view the
 // pane last drew. A hot reload drops it all; the status line then says so.
-let opts: Options = { wadDir: '', alwaysRun: true, maxCells: undefined }
+let opts: Options = { wadDir: '', alwaysRun: true, maxCells: undefined, maxFps: DEFAULT_MAX_FPS }
 let game: Game | undefined
 let tickTimer: Timer | undefined
 let isTicking = false
@@ -35,6 +36,11 @@ let view: ViewSize | undefined
 let isFocused = false
 let denies = 0
 let tickCount = 0
+// Frame pacing: a frame goes out every `blitEvery` tics at most, and only when
+// the engine drew since the last one and the cells differ from the last sent.
+let blitEvery = 2
+let hasNewFrame = false
+let lastCells = ''
 
 const messageOf = (error: unknown): string => (error instanceof Error ? error.message : String(error))
 
@@ -195,7 +201,9 @@ async function ensureTimers($: Dollar): Promise<void> {
 
 async function blitFrame($: Dollar, current: Game, size: ViewSize): Promise<void> {
   const cells = encodeFrame({ width: current.width, height: current.height, pixels: current.frame() }, size.columns, size.rows)
+  if (cells === lastCells) return
   const result = await $.ui.blit({ requestId: PANE, key: RASTER_KEY, cells, columns: size.columns, rows: size.rows })
+  lastCells = cells
   if (result.deny === undefined) {
     denies = 0
     return
@@ -230,7 +238,11 @@ async function onTick($: Dollar): Promise<void> {
       await setStatus($, stopped.reason === 'quit' ? { kind: 'quit', wad: current.wadName } : { kind: 'error', message: stopped.message })
       return
     }
-    if (isDirty && view !== undefined) await blitFrame($, current, view)
+    hasNewFrame ||= isDirty
+    if (hasNewFrame && view !== undefined && tickCount % blitEvery === 0) {
+      hasNewFrame = false
+      await blitFrame($, current, view)
+    }
   } catch (error) {
     debug($, `tick failed: ${messageOf(error)}`)
   } finally {
@@ -290,10 +302,12 @@ async function bench($: Dollar): Promise<{ text: string }> {
 
 export function register(on: On, options: PluginOptions): void {
   const maxCells = Number.parseInt(typeof options.maxCells === 'string' ? options.maxCells : '', 10)
+  const maxFps = Number.parseInt(typeof options.maxFps === 'string' ? options.maxFps : '', 10)
   opts = {
     wadDir: typeof options.wadDir === 'string' ? options.wadDir.trim() : '',
     alwaysRun: options.alwaysRun !== false,
     maxCells: Number.isFinite(maxCells) && maxCells > 0 ? maxCells : undefined,
+    maxFps: Number.isFinite(maxFps) && maxFps > 0 ? maxFps : DEFAULT_MAX_FPS,
   }
 
   on('session.start', async ($, e, next) => {
@@ -371,6 +385,9 @@ export function register(on: On, options: PluginOptions): void {
     if (!sameSize(size, view)) {
       view = size
       denies = 0
+      lastCells = ''
+      blitEvery = ticsPerFrame(size.columns * size.rows, opts.maxFps)
+      debug($, `view ${size.columns}x${size.rows}: a frame every ${blitEvery} tics (${Math.round(35 / blitEvery)} fps)`)
     }
     setFocused(e.props.isFocused)
     const current = game
