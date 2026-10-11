@@ -1,0 +1,22 @@
+doom-pane: the original DOOM in a Claude Code pane
+
+Copyright (c) 2026 speti4 (the mod: hooks/*.ts, hooks/*.tsx, tools/, tests/)
+Copyright (c) 1993-1996 id Software, Inc. (DOOM)
+Copyright (c) 2005-2014 Simon Howard and the Chocolate Doom contributors
+Copyright (c) 2015-2026 Ozkan Sezer and the doomgeneric contributors
+(hooks/engine/doomgeneric.js: doomgeneric compiled to JavaScript, see THIRD-PARTY.md)
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License below for more details.
+
+The bundled game data (wads/freedoom1/) is Freedoom, under its own BSD licence
+in wads/freedoom1/COPYING.txt. The generated engine also carries parts of the
+Emscripten runtime (MIT / University of Illinois NCSA licence); see
+THIRD-PARTY.md.
+

@@ -1,10 +1,14 @@
 {
   "name": "doom-pane",
   "version": "0.1.0",
-  "description": "The original DOOM in a pane: id's engine (doomgeneric, GPL-2) compiled to JavaScript, drawn as half-block pixels on a Raster. /doom opens it; w a s d move, q e strafe, f fires, u uses, m opens the menu. Bring your own IWAD, split once with tools/prepare-wad.mjs (the shareware episode downloads itself). Saves live in the plugin store.",
+  "description": "The original DOOM in a pane with nothing to install: id's engine (doomgeneric, GPL-2) compiled to JavaScript runs inside the mod, Freedoom Phase 1 ships with the plugin, the picture is half-block pixels on a Raster. /doom opens it; w a s d move, q e strafe, f fires, u uses, m opens the menu. Your own IWAD plays too, split into 2 MiB parts. Saves live in the plugin store.",
   "author": {
     "name": "speti4"
   },
+  "homepage": "https://github.com/speti4/claude-games/tree/main/doom-pane",
+  "repository": "https://github.com/speti4/claude-games",
+  "license": "GPL-2.0",
+  "keywords": ["claude-code-mod", "game", "doom", "freedoom", "pane", "raster"],
   "types": "./types/index.d.ts",
   "userConfig": {
     "wadDir": {
