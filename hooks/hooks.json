@@ -1,0 +1,4 @@
+{
+  "description": "doom-pane: /doom opens the original DOOM in a pane; the engine is doomgeneric compiled to JavaScript",
+  "modules": ["./register.tsx"]
+}

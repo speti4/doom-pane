@@ -1,0 +1,25 @@
+{
+  "name": "doom-pane",
+  "version": "0.1.0",
+  "description": "The original DOOM in a pane: id's engine (doomgeneric, GPL-2) compiled to JavaScript, drawn as half-block pixels on a Raster. /doom opens it; w a s d move, q e strafe, f fires, u uses, m opens the menu. Bring your own IWAD, split once with tools/prepare-wad.mjs (the shareware episode downloads itself). Saves live in the plugin store.",
+  "author": {
+    "name": "speti4"
+  },
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "wadDir": {
+      "type": "string",
+      "title": "WAD folder",
+      "description": "Folder holding one sub-folder per prepared IWAD (manifest.json + part-NNN.bin, written by tools/prepare-wad.mjs). Empty: ~/.claude/doom-wads.",
+      "required": false,
+      "default": ""
+    },
+    "alwaysRun": {
+      "type": "boolean",
+      "title": "Always run",
+      "description": "Hold the run key for you (the terminal has no Shift hotkey). Default: on.",
+      "required": false,
+      "default": true
+    }
+  }
+}
