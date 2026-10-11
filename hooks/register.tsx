@@ -78,7 +78,8 @@ async function setStatus($: Dollar, status: Status): Promise<void> {
 async function ownWadRoot($: Dollar): Promise<string> {
   if (opts.wadDir !== '') return opts.wadDir
   const home = (await $.env.get('USERPROFILE')) ?? (await $.env.get('HOME')) ?? '.'
-  return `${home}/.claude/doom-wads`
+  // forward slashes throughout: Windows takes them, and the paths shown to the person stay uniform
+  return `${home.split('\\').join('/')}/.claude/doom-wads`
 }
 
 /** The IWADs the plugin ships, under its own folder. */
