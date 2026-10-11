@@ -7,7 +7,7 @@ import createDoom from './engine/doomgeneric.js'
 import { createGame, type Game } from './engine/driver'
 import { KEYS, lapse, noHolds, press, releaseAll, type Binding, type Holds } from './keys'
 import { CHROME_ROWS, drawElsewhere, drawPane, RASTER_KEY } from './pane'
-import { sameSize, ticsPerFrame, viewSize, type ViewSize } from './view'
+import { MIN_FPS, sameSize, ticsPerFrame, TICS_PER_SECOND, viewSize, type ViewSize } from './view'
 import { assembleWad, describeWad, fromBase64, parseManifest, type Manifest } from './wad'
 
 const PANE = 'doom'
@@ -38,9 +38,16 @@ let denies = 0
 let tickCount = 0
 // Frame pacing: a frame goes out every `blitEvery` tics at most, and only when
 // the engine drew since the last one and the cells differ from the last sent.
+// `baseBlitEvery` is the view's budget; a blit that takes long to be taken (the
+// main thread stuck writing to the console) doubles the interval, a run of
+// quick ones brings it back down one step at a time.
+let baseBlitEvery = 2
 let blitEvery = 2
+let quickBlits = 0
 let hasNewFrame = false
 let lastCells = ''
+const QUICK_BLITS_TO_SPEED_UP = 60
+const SLOWEST_BLIT_EVERY = Math.ceil(TICS_PER_SECOND / MIN_FPS)
 
 const messageOf = (error: unknown): string => (error instanceof Error ? error.message : String(error))
 
@@ -202,8 +209,23 @@ async function ensureTimers($: Dollar): Promise<void> {
 async function blitFrame($: Dollar, current: Game, size: ViewSize): Promise<void> {
   const cells = encodeFrame({ width: current.width, height: current.height, pixels: current.frame() }, size.columns, size.rows)
   if (cells === lastCells) return
+  const started = performance.now()
   const result = await $.ui.blit({ requestId: PANE, key: RASTER_KEY, cells, columns: size.columns, rows: size.rows })
   lastCells = cells
+  const took = performance.now() - started
+  const interval = blitEvery * TICK_MS
+  if (took > interval * 1.5) {
+    quickBlits = 0
+    const slower = Math.min(blitEvery * 2, SLOWEST_BLIT_EVERY)
+    if (slower !== blitEvery) {
+      blitEvery = slower
+      debug($, `a blit took ${Math.round(took)} ms: a frame every ${blitEvery} tics now (${Math.round(TICS_PER_SECOND / blitEvery)} fps)`)
+    }
+  } else if (took < interval * 0.5 && blitEvery > baseBlitEvery && ++quickBlits >= QUICK_BLITS_TO_SPEED_UP) {
+    quickBlits = 0
+    blitEvery--
+    debug($, `blits are quick: a frame every ${blitEvery} tics (${Math.round(TICS_PER_SECOND / blitEvery)} fps)`)
+  }
   if (result.deny === undefined) {
     denies = 0
     return
@@ -386,8 +408,10 @@ export function register(on: On, options: PluginOptions): void {
       view = size
       denies = 0
       lastCells = ''
-      blitEvery = ticsPerFrame(size.columns * size.rows, opts.maxFps)
-      debug($, `view ${size.columns}x${size.rows}: a frame every ${blitEvery} tics (${Math.round(35 / blitEvery)} fps)`)
+      baseBlitEvery = ticsPerFrame(size.columns * size.rows, opts.maxFps)
+      blitEvery = baseBlitEvery
+      quickBlits = 0
+      debug($, `view ${size.columns}x${size.rows}: a frame every ${blitEvery} tics (${Math.round(TICS_PER_SECOND / blitEvery)} fps)`)
     }
     setFocused(e.props.isFocused)
     const current = game

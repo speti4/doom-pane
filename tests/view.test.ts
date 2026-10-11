@@ -10,10 +10,10 @@ describe('ticsPerFrame', () => {
   })
 
   test('a large view is paced by the cell budget', () => {
-    // 81x205 cells at 35 fps stalled the terminal: the budget holds it to ~12 fps
-    expect(ticsPerFrame(81 * 205, 35)).toBe(3)
-    expect(ticsPerFrame(160 * 60, 20)).toBe(2)
-    expect(ticsPerFrame(512 * 256, 35, CELLS_PER_SECOND)).toBe(23)
+    // a 160x60 view at 10 fps still stalled the terminal: the budget holds it to 9 fps
+    expect(ticsPerFrame(160 * 60, 20)).toBe(4)
+    expect(ticsPerFrame(81 * 205, 35)).toBe(6)
+    expect(ticsPerFrame(512 * 256, 35, CELLS_PER_SECOND)).toBe(46)
     expect(ticsPerFrame(0, 0)).toBe(35)
   })
 })

@@ -44,10 +44,14 @@ export function viewSize(room: Room): ViewSize {
 export const TICS_PER_SECOND = 35
 /**
  * How many cells a second the terminal is asked to repaint at most: past this
- * the console's output blocks and the whole process stalls (seen on Windows
- * Terminal at 16k cells x 35 fps).
+ * the console's output backs up and the whole process stalls for minutes
+ * (Windows Terminal, 205x81: a 160x60 view at 10 fps still rewrote 15k cells
+ * a frame; a 84x31 view at 35 fps, 91k cells a second, was fine). The glue
+ * adapts further from how long a blit takes to be taken.
  */
-export const CELLS_PER_SECOND = 200_000
+export const CELLS_PER_SECOND = 100_000
+/** The frame rate the adaptive pacing never goes below. */
+export const MIN_FPS = 5
 
 /** Every how many tics a frame goes to the terminal, for a view of `cells` cells under `maxFps`. */
 export function ticsPerFrame(cells: number, maxFps: number, cellsPerSecond = CELLS_PER_SECOND): number {
