@@ -1,0 +1,67 @@
+{
+  "format": "doom-pane-wad/1",
+  "name": "freedoom1.wad",
+  "size": 28795076,
+  "sha256": "7323bcc168c5a45ff10749b339960e98314740a734c30d4b9f3337001f9e703d",
+  "magic": "IWAD",
+  "numlumps": 3163,
+  "parts": [
+    {
+      "file": "part-000.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-001.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-002.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-003.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-004.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-005.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-006.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-007.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-008.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-009.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-010.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-011.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-012.bin",
+      "size": 2097152
+    },
+    {
+      "file": "part-013.bin",
+      "size": 1532100
+    }
+  ],
+  "source": "Freedoom 0.13.0, https://github.com/freedoom/freedoom/releases/download/v0.13.0/freedoom-0.13.0.zip"
+}

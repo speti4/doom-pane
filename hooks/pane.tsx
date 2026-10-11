@@ -20,8 +20,8 @@ export type PaneModel = {
   cells: string
   isFocused: boolean
   title: string
-  /** What to type to prepare a WAD, shown while none is found. */
-  prepareHint: string
+  /** How an IWAD of one's own is prepared, shown while none is found. */
+  ownWadHint: string
 }
 
 const MAUVE = '#cba6f7'
@@ -57,7 +57,7 @@ function statusLine(els: PaneEls, model: PaneModel) {
     case 'error':
       return <Text color={RED}>DOOM stopped: {status.message}. /doom new starts it again.</Text>
     case 'no-wad':
-      return <Text color={RED}>No WAD found in {status.dir}.</Text>
+      return <Text color={RED}>No IWAD found: the plugin's wads folder is missing and {status.dir} holds none.</Text>
     default:
       return <Text color={OVERLAY}>No game loaded (a reload drops it). Run /doom.</Text>
   }
@@ -71,8 +71,8 @@ export function drawPane(els: PaneEls, model: PaneModel, onHotkey: (binding: Bin
     return (
       <Box flexDirection="column" paddingX={1}>
         {statusLine(els, model)}
-        <Text>Prepare the shareware episode (downloads doom1.wad, 4 MB) or your own IWAD:</Text>
-        <Text color={MAUVE}>{model.prepareHint}</Text>
+        <Text>Freedoom ships with the plugin (reinstall it if its wads folder is gone), and</Text>
+        <Text color={MAUVE}>{model.ownWadHint}.</Text>
         <Text dimColor>Then run /doom again.</Text>
       </Box>
     )

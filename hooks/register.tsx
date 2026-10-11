@@ -8,14 +8,16 @@ import { createGame, type Game } from './engine/driver'
 import { KEYS, lapse, noHolds, press, releaseAll, type Binding, type Holds } from './keys'
 import { CHROME_ROWS, drawElsewhere, drawPane, RASTER_KEY } from './pane'
 import { MIN_FPS, sameSize, ticsPerFrame, TICS_PER_SECOND, viewSize, type ViewSize } from './view'
-import { assembleWad, describeWad, fromBase64, parseManifest, type Manifest } from './wad'
+import { assembleWad, describeWad, fromBase64, planWad, type WadPlan } from './wad'
 
 const PANE = 'doom'
 const TICK_MS = 28
 const PANE_CHECK_TICKS = 70
 const DENIES_BEFORE_REDRAW = 3
 const DENIES_BEFORE_STOP = 40
-const PREPARE_HINT = 'node <doom-pane>/tools/prepare-wad.mjs --shareware   (or: <path-to-iwad>)'
+/** The IWAD the plugin ships, played when nothing else is asked for or remembered. */
+const BUNDLED_WAD = 'freedoom1.wad'
+const OWN_WAD_HINT = 'an IWAD of your own goes split into 2 MiB parts under <wadDir>/<name>/ (README: "Your own IWAD")'
 
 const statusAtom = atom({ plugin: 'doom-pane', key: 'status' } as const, { kind: 'idle' } as Status)
 
@@ -23,7 +25,7 @@ type Dollar = EngineInterface
 type Ui = Pick<EngineInterface, 'ui'>
 type Options = { wadDir: string; alwaysRun: boolean; maxCells: number | undefined; maxFps: number }
 const DEFAULT_MAX_FPS = 20
-type WadEntry = { dir: string; manifest: Manifest }
+type WadEntry = { dir: string; plan: WadPlan; source: 'bundled' | 'own' }
 
 // Module state: the running engine, its timer, the key holds and the view the
 // pane last drew. A hot reload drops it all; the status line then says so.
@@ -72,43 +74,63 @@ async function setStatus($: Dollar, status: Status): Promise<void> {
   await update($, statusAtom, () => status)
 }
 
-async function wadRoot($: Dollar): Promise<string> {
+/** The person's own IWADs: the `wadDir` option, else `~/.claude/doom-wads`. */
+async function ownWadRoot($: Dollar): Promise<string> {
   if (opts.wadDir !== '') return opts.wadDir
   const home = (await $.env.get('USERPROFILE')) ?? (await $.env.get('HOME')) ?? '.'
   return `${home}/.claude/doom-wads`
 }
 
-/** Every prepared WAD under the root: a folder with a valid manifest.json. */
-async function listWads($: Dollar): Promise<{ root: string; wads: WadEntry[] }> {
-  const root = await wadRoot($)
+/** The IWADs the plugin ships, under its own folder. */
+function bundledWadRoot($: Dollar): string | undefined {
+  try {
+    const root = $.plugin.root
+    return typeof root === 'string' && root !== '' ? `${root}/wads` : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/** The WAD folders under one root, each a folder of parts with or without a manifest. */
+async function listWadsUnder($: Dollar, root: string, source: WadEntry['source']): Promise<WadEntry[]> {
   const wads: WadEntry[] = []
   let entries: Awaited<ReturnType<typeof $.fs.list>> = []
   try {
     entries = await $.fs.list(root)
   } catch (error) {
     debug($, `wad folder ${root} not readable: ${messageOf(error)}`)
-    return { root, wads }
+    return wads
   }
   for (const entry of entries) {
     if (entry.kind !== 'dir') continue
     const dir = `${root}/${entry.name}`
     try {
-      const manifest = parseManifest(await $.fs.read(`${dir}/manifest.json`))
-      wads.push({ dir, manifest })
+      const files = (await $.fs.list(dir)).filter(file => file.kind === 'file').map(file => file.name)
+      const manifestText = files.includes('manifest.json') ? await $.fs.read(`${dir}/manifest.json`) : undefined
+      wads.push({ dir, plan: planWad(entry.name, files, manifestText), source })
     } catch (error) {
       debug($, `${dir}: ${messageOf(error)}`)
     }
   }
-  return { root, wads }
+  return wads
+}
+
+/** Every playable IWAD: the bundled ones first, then the person's own. */
+async function listWads($: Dollar): Promise<{ ownRoot: string; wads: WadEntry[] }> {
+  const ownRoot = await ownWadRoot($)
+  const bundledRoot = bundledWadRoot($)
+  const bundled = bundledRoot === undefined ? [] : await listWadsUnder($, bundledRoot, 'bundled')
+  const own = await listWadsUnder($, ownRoot, 'own')
+  return { ownRoot, wads: [...bundled, ...own] }
 }
 
 async function readWad($: Dollar, entry: WadEntry): Promise<Uint8Array> {
   const parts: Uint8Array[] = []
-  for (const part of entry.manifest.parts) {
-    const { base64 } = await $.fs.read(`${entry.dir}/${part.file}`, { as: 'bytes' })
+  for (const file of entry.plan.files) {
+    const { base64 } = await $.fs.read(`${entry.dir}/${file}`, { as: 'bytes' })
     parts.push(fromBase64(base64))
   }
-  return assembleWad(entry.manifest, parts)
+  return assembleWad(entry.plan, parts)
 }
 
 async function readSaves($: Dollar, wad: string): Promise<Record<string, Uint8Array>> {
@@ -151,21 +173,28 @@ function dropGame(): void {
   denies = 0
 }
 
-/** Loads `name` (or the last played, or the first prepared) and starts the engine. */
+const findWad = (wads: readonly WadEntry[], name: string): WadEntry | undefined => {
+  const lower = name.toLowerCase()
+  return wads.find(w => w.plan.name === lower || w.plan.name === `${lower}.wad`)
+}
+
+/** Loads `name` (or the last played, or the bundled Freedoom) and starts the engine. */
 async function loadGame($: Dollar, name?: string): Promise<{ text: string }> {
-  const { root, wads } = await listWads($)
+  const { ownRoot, wads } = await listWads($)
   if (wads.length === 0) {
-    await setStatus($, { kind: 'no-wad', dir: root })
-    return { text: `doom-pane: no prepared WAD in ${root}. Run: ${PREPARE_HINT}` }
+    await setStatus($, { kind: 'no-wad', dir: ownRoot })
+    return { text: `doom-pane: no IWAD found. The plugin's own wads folder is missing (reinstall it), and ${ownRoot} holds none: ${OWN_WAD_HINT}.` }
   }
-  let wanted = name
-  if (wanted === undefined) {
+  let entry: WadEntry | undefined
+  if (name !== undefined) {
+    entry = findWad(wads, name)
+    if (entry === undefined) return { text: `doom-pane: no IWAD named ${name}. /doom wads lists them; ${OWN_WAD_HINT}.` }
+  } else {
     const last = await $.store.get('lastWad').catch(() => undefined)
-    wanted = typeof last === 'string' ? last : undefined
+    entry = (typeof last === 'string' ? findWad(wads, last) : undefined) ?? findWad(wads, BUNDLED_WAD) ?? wads[0]
   }
-  const entry = wads.find(w => w.manifest.name === wanted || w.manifest.name === `${wanted}.wad`) ?? wads[0]
   if (entry === undefined) return { text: 'doom-pane: no WAD to load.' }
-  const wad = entry.manifest.name
+  const wad = entry.plan.name
   dropGame()
   await setStatus($, { kind: 'loading', wad })
   const started = performance.now()
@@ -373,16 +402,17 @@ export function register(on: On, options: PluginOptions): void {
         return { text: `${loaded.text} ${opened.text}` }
       }
       case 'wads': {
-        const { root, wads } = await listWads($)
-        if (wads.length === 0) return { text: `No prepared WAD in ${root}. Run: ${PREPARE_HINT}` }
-        return { text: wads.map(w => `${w.manifest.name}: ${describeWad(w.manifest.name)} (${w.manifest.numlumps} lumps)`).join('\n') }
+        const { ownRoot, wads } = await listWads($)
+        if (wads.length === 0) return { text: `No IWAD found: the plugin's wads folder is missing and ${ownRoot} holds none; ${OWN_WAD_HINT}.` }
+        const lines = wads.map(w => `${w.plan.name}: ${describeWad(w.plan.name)} (${w.plan.files.length} parts, ${w.source === 'bundled' ? 'ships with the plugin' : `in ${w.dir}`})`)
+        return { text: `${lines.join('\n')}\n/doom <name> plays one; ${OWN_WAD_HINT}.` }
       }
       case 'help':
         return {
           text:
             'DOOM keys (the pane must hold the keyboard: /doom focuses it, Esc hands it back, a click gives it back):\n' +
             'w s forward/back, a d turn, q e strafe, f fire, u use (doors, switches), m menu, r enter, b back, t map, p pause, y n yes/no, 1-7 weapons.\n' +
-            'Running is always on. Saves go to the plugin store. /doom new restarts, /doom wads lists the IWADs, /doom <name> plays one.',
+            'Running is always on. Saves go to the plugin store. /doom new restarts, /doom wads lists the IWADs (Freedoom ships with the plugin), /doom <name> plays one.',
         }
       case 'bench':
         return bench($)
@@ -419,7 +449,7 @@ export function register(on: On, options: PluginOptions): void {
       current === undefined ? blankCells(size.columns, size.rows) : encodeFrame({ width: current.width, height: current.height, pixels: current.frame() }, size.columns, size.rows)
     const title = current?.title() ?? ''
     const onHotkey = (binding: Binding) => pressHotkey(binding)
-    return drawPane($.ui.resolve(e), { status, view: size, cells, isFocused: e.props.isFocused, title, prepareHint: PREPARE_HINT }, onHotkey)
+    return drawPane($.ui.resolve(e), { status, view: size, cells, isFocused: e.props.isFocused, title, ownWadHint: OWN_WAD_HINT }, onHotkey)
   }).catch(($, e, next) => {
     logFailure($, 'ui.render', next.error.message)
     try {
