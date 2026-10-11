@@ -7,7 +7,7 @@ plugin: id Software's shareware episode of DOOM ("Knee-Deep in the Dead", E1M1 a
 [Freedoom Phase 1](https://freedoom.github.io/) beside it. Install it, type `/doom`, play. It is the same on
 Windows, macOS and Linux, because nothing of it touches the machine beyond Claude Code's own plugin API.
 
-![The DOOM pane in Claude Code: Freedoom Phase 1 drawn in half-block cells, the status line and the hotkey legend under it](docs/doom-pane.png)
+![The DOOM pane in Claude Code on a Mac: E1M1 of the shareware episode drawn in half-block cells, the status line and the hotkey legend under it](docs/doom-pane.png)
 
 The picture is a `Raster` of half-block cells (one terminal cell holds two pixels, truecolor) repainted with
 `$.ui.blit`; the keys are the pane's hotkeys. Your own IWADs (`doom.wad`, `doom2.wad`, Final DOOM) play too, see
